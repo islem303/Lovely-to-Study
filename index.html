@@ -1,0 +1,701 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lovely Study ♡</title>
+
+<style>
+:root {
+  --pink: #ed8fb4;
+  --light: #fff0f6;
+  --dark: #633c52;
+  --white: #ffffff;
+  --purple: #b7a0e8;
+  --green: #b4d9bd;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #fff8fb;
+  color: var(--dark);
+}
+button, input, textarea, select { font: inherit; }
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 15px;
+  background: var(--pink);
+  color: white;
+  cursor: pointer;
+  transition: .2s;
+}
+button:hover { filter: brightness(.95); transform: translateY(-1px); }
+input, textarea, select {
+  width: 100%;
+  padding: 11px;
+  margin: 7px 0;
+  border: 1px solid #f0c8da;
+  border-radius: 10px;
+  background: white;
+  color: var(--dark);
+}
+textarea { min-height: 100px; resize: vertical; }
+h1, h2, h3 { color: var(--dark); }
+header {
+  padding: 22px;
+  background: linear-gradient(120deg, #ffd9e8, #f4e5ff);
+  text-align: center;
+}
+header h1 { margin: 0; font-size: 30px; }
+header p { margin-bottom: 0; }
+.layout {
+  display: flex;
+  min-height: calc(100vh - 100px);
+}
+nav {
+  width: 210px;
+  padding: 18px;
+  background: white;
+  border-right: 1px solid #f7dce8;
+}
+nav button {
+  display: block;
+  width: 100%;
+  margin: 6px 0;
+  text-align: left;
+  background: transparent;
+  color: var(--dark);
+}
+nav button.active, nav button:hover {
+  background: var(--light);
+  color: #bd5786;
+}
+main { flex: 1; padding: 25px; min-width: 0; }
+.page { display: none; }
+.page.active { display: block; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 15px;
+}
+.card {
+  background: white;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid #f5dce7;
+  box-shadow: 0 4px 14px #8b49600b;
+  margin-bottom: 15px;
+}
+.stat { font-size: 28px; font-weight: bold; color: #cf709a; }
+.item {
+  background: #fff8fb;
+  padding: 13px;
+  border-radius: 12px;
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.item button { margin: 4px; }
+.small { font-size: 13px; opacity: .75; }
+.purple { background: var(--purple); }
+.green { background: #79ad89; }
+.gray { background: #b7a9b0; }
+#timerDisplay { font-size: 48px; font-weight: bold; text-align: center; }
+#flashcardAnswer { display: none; }
+footer { text-align: center; padding: 20px; color: #a77a90; }
+@media(max-width:650px) {
+  .layout { display: block; }
+  nav {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 8px;
+    border-right: none;
+  }
+  nav button { text-align: center; padding: 9px 3px; font-size: 13px; }
+  main { padding: 15px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>🌸 Lovely Study ♡</h1>
+  <p>Your little corner for learning, planning and growing ✨</p>
+</header>
+
+<div class="layout">
+<nav>
+  <button class="active" data-page="dashboard">🏠 Dashboard</button>
+  <button data-page="subjects">📚 Subjects</button>
+  <button data-page="notes">📝 My Notes</button>
+  <button data-page="quiz">🧠 Mini Quiz</button>
+  <button data-page="flashcards">🗂 Flashcards</button>
+  <button data-page="planner">📅 My Planner</button>
+  <button data-page="timer">⏰ Study Timer</button>
+</nav>
+
+<main>
+<section class="page active" id="dashboard">
+  <h2>Welcome back, bestie! 💗</h2>
+  <p>Small steps every day make a big difference.</p>
+  <div class="grid">
+    <div class="card"><h3>📚 Subjects</h3><div class="stat" id="subjectCount">0</div></div>
+    <div class="card"><h3>📝 Notes</h3><div class="stat" id="noteCount">0</div></div>
+    <div class="card"><h3>✅ Completed tasks</h3><div class="stat" id="taskCount">0</div></div>
+  </div>
+  <div class="card">
+    <h3>🌷 Daily motivation</h3>
+    <p id="quote">You don't have to be perfect. Just keep going!</p>
+    <button onclick="newQuote()">New motivation ✨</button>
+  </div>
+  <div class="card">
+    <h3>⚡ Quick actions</h3>
+    <button onclick="showPage('notes')">Write a note</button>
+    <button class="purple" onclick="showPage('planner')">Plan my day</button>
+    <button class="green" onclick="showPage('timer')">Start studying</button>
+  </div>
+</section>
+
+<section class="page" id="subjects">
+  <h2>📚 My Subjects</h2>
+  <div class="card">
+    <form id="subjectForm">
+      <input id="subjectName" placeholder="Subject name (e.g. Python)" required>
+      <input id="subjectDescription" placeholder="Description (optional)">
+      <button type="submit">＋ Add subject</button>
+    </form>
+  </div>
+  <div id="subjectList"></div>
+</section>
+
+<section class="page" id="notes">
+  <h2>📝 My Notes</h2>
+  <div class="card">
+    <form id="noteForm">
+      <input id="noteTitle" placeholder="Note title" required>
+      <select id="noteSubject">
+        <option value="">General</option>
+      </select>
+      <textarea id="noteContent" placeholder="Write your notes here..." required></textarea>
+      <button type="submit">💗 Save note</button>
+    </form>
+  </div>
+  <input id="noteSearch" placeholder="🔍 Search your notes...">
+  <div id="noteList"></div>
+</section>
+
+<section class="page" id="quiz">
+  <h2>🧠 Mini Quiz</h2>
+  <div class="card">
+    <p>Test your knowledge! Choose a topic:</p>
+    <select id="quizTopic">
+      <option value="html">HTML</option>
+      <option value="css">CSS</option>
+      <option value="js">JavaScript</option>
+      <option value="python">Python</option>
+    </select>
+    <button onclick="startQuiz()">Start quiz ♡</button>
+  </div>
+  <div class="card" id="quizArea">
+    <p>Press “Start quiz” when you're ready!</p>
+  </div>
+</section>
+
+<section class="page" id="flashcards">
+  <h2>🗂 My Flashcards</h2>
+  <div class="card">
+    <form id="flashcardForm">
+      <input id="flashQuestion" placeholder="Question or term" required>
+      <textarea id="flashAnswerInput" placeholder="Answer or definition" required></textarea>
+      <button type="submit">＋ Add flashcard</button>
+    </form>
+  </div>
+  <div class="card" id="flashcardArea">
+    <p>Your flashcards will appear here.</p>
+  </div>
+  <div id="flashcardList"></div>
+</section>
+
+<section class="page" id="planner">
+  <h2>📅 My Planner</h2>
+  <div class="card">
+    <form id="taskForm">
+      <input id="taskName" placeholder="What do you need to do?" required>
+      <input id="taskDate" type="date">
+      <button type="submit">＋ Add task</button>
+    </form>
+  </div>
+  <div id="taskList"></div>
+</section>
+
+<section class="page" id="timer">
+  <h2>⏰ Study Timer</h2>
+  <div class="card">
+    <p>Choose your focus time in minutes:</p>
+    <input id="timerMinutes" type="number" min="1" max="180" value="25">
+    <div id="timerDisplay">25:00</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button id="startTimer">▶ Start</button>
+      <button id="pauseTimer" class="purple">⏸ Pause</button>
+      <button id="resetTimer" class="gray">↻ Reset</button>
+    </div>
+    <p id="timerMessage" style="text-align:center">Ready when you are! 🌸</p>
+  </div>
+</section>
+</main>
+</div>
+
+<footer>Made with love ♡ One page at a time, one goal at a time.</footer>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const STORAGE_KEY = "lovelyStudyData_v1";
+const defaultData = {
+  subjects: [],
+  notes: [],
+  tasks: [],
+  flashcards: []
+};
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        subjects: Array.isArray(parsed.subjects) ? parsed.subjects : [],
+        notes: Array.isArray(parsed.notes) ? parsed.notes : [],
+        tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+        flashcards: Array.isArray(parsed.flashcards) ? parsed.flashcards : []
+      };
+    }
+  } catch (error) {
+    console.error("Could not load saved data:", error);
+  }
+  return {
+    subjects: [], notes: [], tasks: [], flashcards: []
+  };
+}
+
+let data = loadData();
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    updateDashboard();
+  } catch (error) {
+    alert("Your browser could not save the data. Check your browser storage settings.");
+    console.error(error);
+  }
+}
+
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.toggle("active", page.id === pageId);
+  });
+  document.querySelectorAll("nav button").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === pageId);
+  });
+}
+
+document.querySelectorAll("nav button").forEach(button => {
+  button.addEventListener("click", () => showPage(button.dataset.page));
+});
+
+function updateDashboard() {
+  $("subjectCount").textContent = data.subjects.length;
+  $("noteCount").textContent = data.notes.length;
+  $("taskCount").textContent = data.tasks.filter(task => task.done).length;
+}
+
+function renderSubjects() {
+  $("subjectList").innerHTML = data.subjects.map(subject => `
+    <div class="item">
+      <strong>📘 ${escapeHTML(subject.name)}</strong>
+      <p>${escapeHTML(subject.description || "No description")}</p>
+      <button class="gray" onclick="deleteSubject('${subject.id}')">Delete</button>
+    </div>
+  `).join("") || "<p>No subjects yet. Add your first one! 🌷</p>";
+
+  $("noteSubject").innerHTML =
+    '<option value="">General</option>' +
+    data.subjects.map(subject =>
+      `<option value="${subject.id}">${escapeHTML(subject.name)}</option>`
+    ).join("");
+}
+
+$("subjectForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const name = $("subjectName").value.trim();
+  if (!name) return;
+
+  data.subjects.push({
+    id: makeId(),
+    name,
+    description: $("subjectDescription").value.trim()
+  });
+
+  saveData();
+  renderSubjects();
+  $("subjectForm").reset();
+});
+
+function deleteSubject(id) {
+  if (!confirm("Delete this subject? Your notes will remain.")) return;
+  data.subjects = data.subjects.filter(subject => subject.id !== id);
+  saveData();
+  renderSubjects();
+}
+
+function renderNotes() {
+  const search = $("noteSearch").value.toLowerCase();
+
+  const notes = data.notes.filter(note =>
+    (note.title + " " + note.content).toLowerCase().includes(search)
+  );
+
+  $("noteList").innerHTML = notes.map(note => {
+    const subject = data.subjects.find(item => item.id === note.subjectId);
+    return `
+      <div class="item">
+        <h3>${escapeHTML(note.title)}</h3>
+        <p class="small">${escapeHTML(subject ? subject.name : "General")}</p>
+        <p>${escapeHTML(note.content).replace(/\n/g, "<br>")}</p>
+        <button class="gray" onclick="deleteNote('${note.id}')">Delete</button>
+      </div>
+    `;
+  }).join("") || "<p>No notes found. Write something lovely! 💗</p>";
+}
+
+$("noteForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const title = $("noteTitle").value.trim();
+  const content = $("noteContent").value.trim();
+  if (!title || !content) return;
+
+  data.notes.unshift({
+    id: makeId(),
+    title,
+    content,
+    subjectId: $("noteSubject").value
+  });
+
+  saveData();
+  renderNotes();
+  $("noteForm").reset();
+});
+
+$("noteSearch").addEventListener("input", renderNotes);
+
+function deleteNote(id) {
+  if (!confirm("Delete this note?")) return;
+  data.notes = data.notes.filter(note => note.id !== id);
+  saveData();
+  renderNotes();
+}
+
+const quizQuestions = {
+  html: [
+    {q:"What does HTML stand for?", a:["HyperText Markup Language","HighText Machine Language","Home Tool Markup Language"], correct:0},
+    {q:"Which tag creates a paragraph?", a:["<h1>","<p>","<img>"], correct:1},
+    {q:"Which tag creates a link?", a:["<a>","<linktext>","<href>"], correct:0},
+    {q:"Which tag displays an image?", a:["<picturetext>","<img>","<imageurl>"], correct:1}
+  ],
+  css: [
+    {q:"What does CSS control?", a:["Page appearance","Database storage","Computer hardware"], correct:0},
+    {q:"Which property changes text color?", a:["font-style","color","background-image"], correct:1},
+    {q:"Which selector targets a class?", a:["#name",".name","name()"], correct:1},
+    {q:"Which property adds space inside an element?", a:["padding","margin","outline"], correct:0}
+  ],
+  js: [
+    {q:"Which keyword declares a variable?", a:["let","style","page"], correct:0},
+    {q:"Which method selects an element by ID?", a:["getElementById()","getStyle()","selectPage()"], correct:0},
+    {q:"Which symbol begins a single-line comment?", a:["<!--","//","**"], correct:1},
+    {q:"Which method adds a click handler?", a:["addEventListener()","addClickStyle()","onPage()"], correct:0}
+  ],
+  python: [
+    {q:"Which function displays text?", a:["echo()","print()","showtext()"], correct:1},
+    {q:"Which symbol starts a comment?", a:["#","//","<!--"], correct:0},
+    {q:"Which type stores a list of items?", a:["list","integer only","character"], correct:0},
+    {q:"Which keyword defines a function?", a:["function","def","make"], correct:1}
+  ]
+};
+
+let currentQuestions = [];
+let quizIndex = 0;
+let quizScore = 0;
+let quizAnswered = false;
+
+function startQuiz() {
+  currentQuestions = quizQuestions[$("quizTopic").value];
+  quizIndex = 0;
+  quizScore = 0;
+  quizAnswered = false;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (quizIndex >= currentQuestions.length) {
+    $("quizArea").innerHTML = `
+      <h3>🎉 Quiz completed!</h3>
+      <p>You scored ${quizScore} out of ${currentQuestions.length}.</p>
+      <button onclick="startQuiz()">Try again</button>
+    `;
+    return;
+  }
+
+  const question = currentQuestions[quizIndex];
+  quizAnswered = false;
+
+  $("quizArea").innerHTML = `
+    <p class="small">Question ${quizIndex + 1} of ${currentQuestions.length}</p>
+    <h3>${escapeHTML(question.q)}</h3>
+    ${question.a.map((answer, index) => `
+      <button style="display:block;width:100%;margin:8px 0;background:#e9dafa;color:#633c52"
+        onclick="answerQuestion(${index})">${escapeHTML(answer)}</button>
+    `).join("")}
+    <p id="quizFeedback"></p>
+  `;
+}
+
+function answerQuestion(index) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+
+  const correct = currentQuestions[quizIndex].correct;
+  if (index === correct) quizScore++;
+
+  $("quizFeedback").textContent =
+    index === correct ? "Correct! Great job! 💗" :
+    "Not quite! The correct answer is: " + currentQuestions[quizIndex].a[correct];
+
+  const next = document.createElement("button");
+  next.textContent = quizIndex === currentQuestions.length - 1
+    ? "See results" : "Next question →";
+  next.style.marginTop = "10px";
+  next.addEventListener("click", () => {
+    quizIndex++;
+    renderQuestion();
+  });
+  $("quizArea").appendChild(next);
+}
+
+let currentFlashcard = 0;
+let flashAnswerVisible = false;
+
+$("flashcardForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  data.flashcards.push({
+    id: makeId(),
+    question: $("flashQuestion").value.trim(),
+    answer: $("flashAnswerInput").value.trim()
+  });
+
+  saveData();
+  $("flashcardForm").reset();
+  renderFlashcards();
+});
+
+function renderFlashcards() {
+  const area = $("flashcardArea");
+
+  if (!data.flashcards.length) {
+    area.innerHTML = "<p>No flashcards yet. Create your first card! 🌷</p>";
+  } else {
+    currentFlashcard = currentFlashcard % data.flashcards.length;
+    const card = data.flashcards[currentFlashcard];
+
+    area.innerHTML = `
+      <p class="small">Card ${currentFlashcard + 1} of ${data.flashcards.length}</p>
+      <h3>${escapeHTML(card.question)}</h3>
+      ${flashAnswerVisible ? `<p>${escapeHTML(card.answer).replace(/\n/g, "<br>")}</p>` : ""}
+      <button onclick="toggleFlashAnswer()">${flashAnswerVisible ? "Hide answer" : "Show answer"}</button>
+      <button class="purple" onclick="nextFlashcard()">Next →</button>
+    `;
+  }
+
+  $("flashcardList").innerHTML = data.flashcards.map(card => `
+    <div class="item">
+      <strong>${escapeHTML(card.question)}</strong>
+      <button class="gray" onclick="deleteFlashcard('${card.id}')">Delete</button>
+    </div>
+  `).join("");
+}
+
+function toggleFlashAnswer() {
+  flashAnswerVisible = !flashAnswerVisible;
+  renderFlashcards();
+}
+
+function nextFlashcard() {
+  if (!data.flashcards.length) return;
+  currentFlashcard = (currentFlashcard + 1) % data.flashcards.length;
+  flashAnswerVisible = false;
+  renderFlashcards();
+}
+
+function deleteFlashcard(id) {
+  data.flashcards = data.flashcards.filter(card => card.id !== id);
+  currentFlashcard = 0;
+  flashAnswerVisible = false;
+  saveData();
+  renderFlashcards();
+}
+
+$("taskForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const name = $("taskName").value.trim();
+  if (!name) return;
+
+  data.tasks.push({
+    id: makeId(),
+    name,
+    date: $("taskDate").value,
+    done: false
+  });
+
+  saveData();
+  renderTasks();
+  $("taskForm").reset();
+});
+
+function renderTasks() {
+  const tasks = [...data.tasks].sort((a, b) =>
+    Number(a.done) - Number(b.done)
+  );
+
+  $("taskList").innerHTML = tasks.map(task => `
+    <div class="item">
+      <label>
+        <input type="checkbox" style="width:auto" ${task.done ? "checked" : ""}
+          onchange="toggleTask('${task.id}', this.checked)">
+        <span style="${task.done ? "text-decoration:line-through;opacity:.6" : ""}">
+          ${escapeHTML(task.name)}
+        </span>
+      </label>
+      ${task.date ? `<p class="small">📅 ${escapeHTML(task.date)}</p>` : ""}
+      <button class="gray" onclick="deleteTask('${task.id}')">Delete</button>
+    </div>
+  `).join("") || "<p>Your planner is empty. Add a task! 🌸</p>";
+}
+
+function toggleTask(id, checked) {
+  const task = data.tasks.find(item => item.id === id);
+  if (task) task.done = checked;
+  saveData();
+  renderTasks();
+}
+
+function deleteTask(id) {
+  data.tasks = data.tasks.filter(task => task.id !== id);
+  saveData();
+  renderTasks();
+}
+
+let timerSeconds = 25 * 60;
+let timerInterval = null;
+let timerRunning = false;
+
+function displayTimer() {
+  const minutes = Math.floor(timerSeconds / 60);
+  const seconds = timerSeconds % 60;
+  $("timerDisplay").textContent =
+    String(minutes).padStart(2, "0") + ":" +
+    String(seconds).padStart(2, "0");
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerRunning = false;
+
+  let minutes = Number($("timerMinutes").value);
+  if (!Number.isFinite(minutes) || minutes < 1 || minutes > 180) {
+    minutes = 25;
+    $("timerMinutes").value = 25;
+  }
+
+  timerSeconds = Math.floor(minutes) * 60;
+  displayTimer();
+  $("timerMessage").textContent = "Ready when you are! 🌸";
+}
+
+$("startTimer").addEventListener("click", () => {
+  if (timerRunning) return;
+
+  if (timerSeconds <= 0) resetTimer();
+
+  timerRunning = true;
+  $("timerMessage").textContent = "Focus time! You've got this 💗";
+
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    displayTimer();
+
+    if (timerSeconds <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerRunning = false;
+      $("timerMessage").textContent = "Time is up! Take a little break 🌷";
+      alert("Study session complete! Great work! 🎉");
+    }
+  }, 1000);
+});
+
+$("pauseTimer").addEventListener("click", () => {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerRunning = false;
+  $("timerMessage").textContent = "Timer paused. Take your time 💕";
+});
+
+$("resetTimer").addEventListener("click", resetTimer);
+$("timerMinutes").addEventListener("change", () => {
+  if (!timerRunning) resetTimer();
+});
+
+const quotes = [
+  "You don't have to be perfect. Just keep going! 💗",
+  "Every expert was once a beginner. 🌱",
+  "Believe in yourself and keep learning. 🌸",
+  "Your future self will thank you for studying today. ✨",
+  "Little progress is still progress. 🦋"
+];
+
+function newQuote() {
+  $("quote").textContent = quotes[Math.floor(Math.random() * quotes.length)];
+}
+
+// Load saved information and connect all features.
+renderSubjects();
+renderNotes();
+renderTasks();
+renderFlashcards();
+updateDashboard();
+displayTimer();
+</script>
+</body>
+</html>
